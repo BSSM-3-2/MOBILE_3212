@@ -83,14 +83,14 @@ export const useFeedStore = create<FeedState>((set, get) => ({
                 ? await unlikePost(postId)
                 : await likePost(postId);
             set({
-                posts: posts.map(p =>
+                posts: get().posts.map(p =>
                     p.id === postId
                         ? { ...p, liked: result.liked, likes: result.likes }
                         : p,
                 ),
             });
         } catch {
-            set({ posts });
+            set({ posts: get().posts.map(p => (p.id === postId ? target : p)) });
         }
     },
 }));
