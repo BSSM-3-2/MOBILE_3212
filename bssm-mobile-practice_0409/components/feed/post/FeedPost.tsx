@@ -7,8 +7,15 @@ import { ThemedView } from '@components/themed-view';
 import FeedImage from '@components/feed/post/FeedImage';
 import { resolveImageSource } from '@/utils/image';
 import { useFeedStore } from '@/store/feed-store';
+import type { GestureType } from 'react-native-gesture-handler';
 
-function FeedPost({ post }: { post: Post }) {
+function FeedPost({
+    post,
+    simultaneousGesture,
+}: {
+    post: Post;
+    simultaneousGesture?: GestureType;
+}) {
     const user = post.author;
     const { posts, toggleLike } = useFeedStore();
 
@@ -29,6 +36,7 @@ function FeedPost({ post }: { post: Post }) {
             <FeedImage
                 image={resolveImageSource(post.images[0])}
                 onDoubleTap={handleDoubleTap}
+                simultaneousGesture={simultaneousGesture}
             />
             <ContentContainer style={{ gap: 4 }}>
                 <FeedPostActions

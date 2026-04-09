@@ -35,10 +35,7 @@ function SwipeableFeedPost({
         })
         .onUpdate(event => {
             const nextX = startX.value + event.translationX;
-            translateX.value = Math.min(
-                Math.max(nextX, -DELETE_AREA_WIDTH),
-                0,
-            );
+            translateX.value = Math.min(Math.max(nextX, -DELETE_AREA_WIDTH), 0);
         })
         .onEnd(() => {
             const shouldOpen = translateX.value <= DELETE_THRESHOLD;
@@ -60,10 +57,18 @@ function SwipeableFeedPost({
 
     const composedGesture = Gesture.Race(longPressGesture, panGesture);
 
-    const animatedStyle = useAnimatedStyle(() => ({
+    const cardAnimatedStyle = useAnimatedStyle(() => ({
         transform: [
             { translateX: translateX.value },
             { scale: cardScale.value },
+        ],
+    }));
+
+    const deleteAreaAnimatedStyle = useAnimatedStyle(() => ({
+        transform: [
+            {
+                translateX: DELETE_AREA_WIDTH + translateX.value,
+            },
         ],
     }));
 
@@ -73,18 +78,21 @@ function SwipeableFeedPost({
 
     return (
         <View style={styles.container}>
-            <View style={styles.deleteArea}>
+            <Animated.View
+                pointerEvents={translateX.value === 0 ? 'none' : 'auto'}
+                style={[styles.deleteArea, deleteAreaAnimatedStyle]}
+            >
                 <TouchableOpacity
                     onPress={handleDeletePress}
                     style={styles.deleteButton}
                 >
                     <Ionicons name='trash-outline' size={24} color='white' />
                 </TouchableOpacity>
-            </View>
+            </Animated.View>
 
             <GestureDetector gesture={composedGesture}>
-                <Animated.View style={animatedStyle}>
-                    <FeedPost post={post} />
+                <Animated.View style={[styles.card, cardAnimatedStyle]}>
+                    <FeedPost post={post} simultaneousGesture={panGesture} />
                 </Animated.View>
             </GestureDetector>
         </View>
@@ -95,6 +103,10 @@ const styles = StyleSheet.create({
     container: {
         overflow: 'hidden',
         marginBottom: 20,
+        position: 'relative',
+    },
+    card: {
+        zIndex: 1,
     },
     deleteArea: {
         position: 'absolute',
@@ -105,6 +117,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#ED4956',
         justifyContent: 'center',
         alignItems: 'center',
+        zIndex: 0,
     },
     deleteButton: {
         flex: 1,

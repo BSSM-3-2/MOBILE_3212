@@ -1,7 +1,11 @@
 import { Image, ImageLoadEventData } from 'expo-image';
 import { Dimensions, ImageSourcePropType, StyleSheet } from 'react-native';
 import { useState } from 'react';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import {
+    Gesture,
+    GestureDetector,
+    type GestureType,
+} from 'react-native-gesture-handler';
 import Animated, {
     clamp,
     runOnJS,
@@ -19,9 +23,11 @@ const MAX_SCALE = 3;
 export default function FeedImage({
     image,
     onDoubleTap,
+    simultaneousGesture,
 }: {
     image: ImageSourcePropType;
     onDoubleTap?: () => void;
+    simultaneousGesture?: GestureType;
 }) {
     const [imageHeight, setImageHeight] = useState(SCREEN_WIDTH);
 
@@ -37,7 +43,11 @@ export default function FeedImage({
     const heartOpacity = useSharedValue(0);
     const heartScale = useSharedValue(0.7);
 
-    const pinchGesture = Gesture.Pinch()
+    const pinchGesture = Gesture.Pinch();
+    if (simultaneousGesture) {
+        pinchGesture.simultaneousWithExternalGesture(simultaneousGesture);
+    }
+    pinchGesture
         .onStart(event => {
             isPinching.value = true;
             focalX.value = event.focalX;
@@ -46,8 +56,9 @@ export default function FeedImage({
         .onUpdate(event => {
             const nextScale = savedScale.value * event.scale;
             scale.value = Math.min(Math.max(nextScale, 1), MAX_SCALE);
-            const maxTranslateX = ((SCREEN_WIDTH * scale.value) - SCREEN_WIDTH) / 2;
-            const maxTranslateY = ((imageHeight * scale.value) - imageHeight) / 2;
+            const maxTranslateX =
+                (SCREEN_WIDTH * scale.value - SCREEN_WIDTH) / 2;
+            const maxTranslateY = (imageHeight * scale.value - imageHeight) / 2;
             translateX.value = clamp(
                 translateX.value,
                 -maxTranslateX,
@@ -76,8 +87,11 @@ export default function FeedImage({
             isPinching.value = false;
         });
 
-    const panGesture = Gesture.Pan()
-        .maxPointers(1)
+    const panGesture = Gesture.Pan().maxPointers(1);
+    if (simultaneousGesture) {
+        panGesture.simultaneousWithExternalGesture(simultaneousGesture);
+    }
+    panGesture
         .onStart(() => {
             savedTranslateX.value = translateX.value;
             savedTranslateY.value = translateY.value;
@@ -87,8 +101,9 @@ export default function FeedImage({
                 return;
             }
 
-            const maxTranslateX = ((SCREEN_WIDTH * scale.value) - SCREEN_WIDTH) / 2;
-            const maxTranslateY = ((imageHeight * scale.value) - imageHeight) / 2;
+            const maxTranslateX =
+                (SCREEN_WIDTH * scale.value - SCREEN_WIDTH) / 2;
+            const maxTranslateY = (imageHeight * scale.value - imageHeight) / 2;
 
             translateX.value = clamp(
                 savedTranslateX.value + event.translationX,
@@ -106,23 +121,24 @@ export default function FeedImage({
             savedTranslateY.value = translateY.value;
         });
 
-    const doubleTapGesture = Gesture.Tap()
-        .numberOfTaps(2)
-        .maxDuration(250)
-        .onStart(() => {
-            heartOpacity.value = withSequence(
-                withTiming(1, { duration: 120 }),
-                withTiming(0, { duration: 220 }),
-            );
-            heartScale.value = withSequence(
-                withTiming(1.15, { duration: 120 }),
-                withTiming(1, { duration: 100 }),
-            );
+    const doubleTapGesture = Gesture.Tap().numberOfTaps(2).maxDuration(250);
+    if (simultaneousGesture) {
+        doubleTapGesture.simultaneousWithExternalGesture(simultaneousGesture);
+    }
+    doubleTapGesture.onStart(() => {
+        heartOpacity.value = withSequence(
+            withTiming(1, { duration: 120 }),
+            withTiming(0, { duration: 220 }),
+        );
+        heartScale.value = withSequence(
+            withTiming(1.15, { duration: 120 }),
+            withTiming(1, { duration: 100 }),
+        );
 
-            if (onDoubleTap) {
-                runOnJS(onDoubleTap)();
-            }
-        });
+        if (onDoubleTap) {
+            runOnJS(onDoubleTap)();
+        }
+    });
 
     const composedGesture = Gesture.Simultaneous(
         pinchGesture,
@@ -155,9 +171,7 @@ export default function FeedImage({
 
     return (
         <GestureDetector gesture={composedGesture}>
-            <Animated.View
-                style={[styles.imageFrame, { height: imageHeight }]}
-            >
+            <Animated.View style={[styles.imageFrame, { height: imageHeight }]}>
                 <Animated.View
                     style={[styles.imageContainer, imageAnimatedStyle]}
                 >
