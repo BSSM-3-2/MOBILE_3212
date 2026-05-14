@@ -1,18 +1,38 @@
-import { ExpoConfig, ConfigContext } from 'expo/config';
+import type { ExpoConfig, ConfigContext } from 'expo/config';
 
 export default ({ config }: ConfigContext): ExpoConfig => {
     const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+    const owner = process.env.EXPO_PUBLIC_EXPO_OWNER ?? 'jmj732';
+    const easProjectId =
+        process.env.EXPO_PUBLIC_EAS_PROJECT_ID ??
+        (config.extra?.eas as { projectId?: string } | undefined)?.projectId ??
+        '296f8a1d-6294-4c54-a12b-f7f097955b60';
+
     if (!apiUrl) {
         throw new Error(
             'EXPO_PUBLIC_API_URL is required. Set it in your .env file.',
         );
     }
 
+    const updates = easProjectId
+        ? {
+              url: `https://u.expo.dev/${easProjectId}`,
+              enabled: true,
+              fallbackToCacheTimeout: 0,
+              checkAutomatically: 'ON_LOAD' as const,
+          }
+        : undefined;
+
     return {
         ...config,
         name: 'MyFeed',
         slug: 'MyFeed',
+        owner,
         version: '1.0.0',
+        runtimeVersion: {
+            policy: 'appVersion',
+        },
+        updates,
         orientation: 'portrait',
         icon: './assets/images/icon.png',
         scheme: 'myfeed',
@@ -70,7 +90,16 @@ export default ({ config }: ConfigContext): ExpoConfig => {
             reactCompiler: true,
         },
         extra: {
+            ...config.extra,
             apiUrl,
+            ...(easProjectId
+                ? {
+                      eas: {
+                          ...(config.extra?.eas as object | undefined),
+                          projectId: easProjectId,
+                      },
+                  }
+                : {}),
         },
     };
 };
