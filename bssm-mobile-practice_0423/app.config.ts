@@ -59,6 +59,14 @@ export default ({ config }: ConfigContext): ExpoConfig => {
             'expo-router',
             'expo-secure-store',
             [
+                '@sentry/react-native/expo',
+                {
+                    url: 'https://sentry.io/',
+                    project: 'react-native',
+                    organization: 'busan-software-meister-high-sc',
+                },
+            ],
+            [
                 'expo-image-picker',
                 {
                     photosPermission:
