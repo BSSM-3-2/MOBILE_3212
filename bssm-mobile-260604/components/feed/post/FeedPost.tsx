@@ -24,11 +24,14 @@ interface FeedPostProps {
 const FeedPost = React.memo(function FeedPost({ post, onLike }: FeedPostProps) {
     console.log('FeedPost render:', post.id);
     const user = post.author;
-    const { posts, toggleLike } = useFeedStore();
 
-    // 스토어에서 최신 liked 상태를 가져와 더블탭 중복 좋아요 방지
-    const currentPost = posts.find(p => p.id === post.id);
-    const liked = currentPost?.liked ?? post.liked;
+    // TODO 3: useFeedStore() 전체 구독을 selector로 교체하세요
+    //         const liked      = useFeedStore(s => s.posts.find(p => p.id === post.id)?.liked ?? post.liked);
+    //         const toggleLike = useFeedStore(s => s.toggleLike);
+    const liked = useFeedStore(
+        s => s.posts.find(p => p.id === post.id)?.liked ?? post.liked,
+    );
+    const toggleLike = useFeedStore(s => s.toggleLike);
 
     // TODO 4: useCallback으로 감싸세요 — dependency: [liked, toggleLike, post.id]
     //         단, useCallback은 if (!user) return null 보다 위에 있어야 합니다

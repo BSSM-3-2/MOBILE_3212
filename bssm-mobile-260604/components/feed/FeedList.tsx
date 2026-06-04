@@ -24,7 +24,13 @@ function FeedList({
     scrollY?: SharedValue<number>;
     onLike?: (id: string) => void;
 }) {
-    const { removePost, fetchFeed, loading } = useFeedStore();
+    // TODO 1: useFeedStore() 전체 구독을 selector로 교체하세요
+    //         const removePost = useFeedStore(s => s.removePost);
+    //         const fetchFeed  = useFeedStore(s => s.fetchFeed);
+    //         const loading    = useFeedStore(s => s.loading);
+    const removePost = useFeedStore(s => s.removePost);
+    const fetchFeed = useFeedStore(s => s.fetchFeed);
+    const loading = useFeedStore(s => s.loading);
 
     // useAnimatedScrollHandler: 스크롤 이벤트를 UI 스레드 worklet으로 처리
     // 일반 onScroll 대비 이점: JS 스레드 부하 없이 매 프레임 정확한 위치 추적

@@ -28,25 +28,25 @@ const FeedPostActions = React.memo(function FeedPostActions({
     onLike?: (id: string) => void;
 }) {
     const [saved, setSaved] = useState(false);
-    const { posts, toggleLike } = useFeedStore();
 
-    // 스토어의 최신 상태를 우선 사용, 없으면 props 초기값 fallback
-    const post = posts.find(p => p.id === postId);
-    const liked = post?.liked ?? initialLiked;
-    const likeCount = post?.likes ?? initialLikes;
+    // TODO 2: 아래 전체 구독을 selector로 교체하세요
+    //         const liked      = useFeedStore(s => s.posts.find(p => p.id === postId)?.liked  ?? initialLiked);
+    //         const likeCount  = useFeedStore(s => s.posts.find(p => p.id === postId)?.likes  ?? initialLikes);
+    //         const toggleLike = useFeedStore(s => s.toggleLike);
+    const liked = useFeedStore(
+        s => s.posts.find(p => p.id === postId)?.liked ?? initialLiked,
+    );
+    const likeCount = useFeedStore(
+        s => s.posts.find(p => p.id === postId)?.likes ?? initialLikes,
+    );
+    const toggleLike = useFeedStore(s => s.toggleLike);
 
-    // --- Reanimated: 하트 애니메이션 ---
-    // useSharedValue: JS 스레드와 UI 스레드가 공유하는 값
     const heartScale = useSharedValue(1);
-
-    // useAnimatedStyle: UI 스레드에서 직접 실행되는 스타일 (worklet)
     const heartAnimatedStyle = useAnimatedStyle(() => ({
         transform: [{ scale: heartScale.value }],
     }));
 
     const handleLike = () => {
-        // withSequence: 애니메이션을 순서대로 실행
-        // withSpring: 스프링 물리 기반 애니메이션 (JS 브리지 없이 UI 스레드에서 실행)
         heartScale.value = withSequence(
             withSpring(1.4, { damping: 3, stiffness: 300 }),
             withSpring(1, { damping: 5, stiffness: 200 }),
@@ -57,7 +57,6 @@ const FeedPostActions = React.memo(function FeedPostActions({
             toggleLike(postId);
         }
     };
-    // ------------------------------------
 
     const handleSave = () => setSaved(prev => !prev);
 
@@ -65,10 +64,9 @@ const FeedPostActions = React.memo(function FeedPostActions({
         <ThemedView style={styles.actions}>
             <ThemedView style={styles.leftActions}>
                 <TouchableOpacity
-                     onPress={handleLike}
-                     style={[styles.actionButton, styles.row]}
+                    onPress={handleLike}
+                    style={[styles.actionButton, styles.row]}
                 >
-                    {/* Animated.View: useAnimatedStyle 적용을 위한 Reanimated 뷰 */}
                     <Animated.View style={heartAnimatedStyle}>
                         <Ionicons
                             name={liked ? 'heart' : 'heart-outline'}
