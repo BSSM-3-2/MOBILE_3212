@@ -10,6 +10,7 @@ import { resolveImageSource } from '@/utils/image';
 import { useFeedStore } from '@/store/feed-store';
 
 function FeedPost({ post }: { post: Post }) {
+    console.log('FeedPost render:', post.id);
     const user = post.author;
     const { posts, toggleLike } = useFeedStore();
 
