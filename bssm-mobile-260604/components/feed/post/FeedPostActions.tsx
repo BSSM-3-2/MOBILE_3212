@@ -1,6 +1,6 @@
+import React, { useState } from 'react';
 import { TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
 import { ThemedText } from '@components/themed-text';
 import { FeedColors, Spacing } from '@/constants/theme';
 import { ThemedView } from '@components/themed-view';
@@ -12,16 +12,20 @@ import Animated, {
     withSpring,
 } from 'react-native-reanimated';
 
-function FeedPostActions({
+// TODO 1: React.memo로 컴포넌트를 감싸세요
+
+const FeedPostActions = React.memo(function FeedPostActions({
     postId,
     initialLikes,
     initialLiked = false,
     commentCount = 0,
+    onLike,
 }: {
     postId: string;
     initialLikes: number;
     initialLiked?: boolean;
     commentCount?: number;
+    onLike?: (id: string) => void;
 }) {
     const [saved, setSaved] = useState(false);
     const { posts, toggleLike } = useFeedStore();
@@ -47,7 +51,11 @@ function FeedPostActions({
             withSpring(1.4, { damping: 3, stiffness: 300 }),
             withSpring(1, { damping: 5, stiffness: 200 }),
         );
-        toggleLike(postId);
+        if (onLike) {
+            onLike(postId);
+        } else {
+            toggleLike(postId);
+        }
     };
     // ------------------------------------
 
@@ -57,8 +65,8 @@ function FeedPostActions({
         <ThemedView style={styles.actions}>
             <ThemedView style={styles.leftActions}>
                 <TouchableOpacity
-                    onPress={handleLike}
-                    style={[styles.actionButton, styles.row]}
+                     onPress={handleLike}
+                     style={[styles.actionButton, styles.row]}
                 >
                     {/* Animated.View: useAnimatedStyle 적용을 위한 Reanimated 뷰 */}
                     <Animated.View style={heartAnimatedStyle}>
@@ -106,7 +114,7 @@ function FeedPostActions({
             </TouchableOpacity>
         </ThemedView>
     );
-}
+});
 
 const styles = StyleSheet.create({
     actions: {

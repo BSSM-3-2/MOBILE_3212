@@ -1,3 +1,4 @@
+import React from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -12,15 +13,20 @@ import * as Haptics from 'expo-haptics';
 import { Post } from '@type/Post';
 import { FeedPost } from './FeedPost';
 
+// TODO: React.memo로 컴포넌트를 감싸세요
+//       renderItem이 useCallback으로 안정화되면, React.memo가 있는 컴포넌트만 건너뛸 수 있습니다
+
 const DELETE_AREA_WIDTH = 80;
 const DELETE_THRESHOLD = -60;
 
-function SwipeableFeedPost({
+const SwipeableFeedPost = React.memo(function SwipeableFeedPost({
     post,
     onDelete,
+    onLike,
 }: {
     post: Post;
     onDelete: (id: string) => void;
+    onLike?: (id: string) => void;
 }) {
     // 수평 이동 (스와이프 삭제)
     const translateX = useSharedValue(0);
@@ -93,12 +99,12 @@ function SwipeableFeedPost({
                 <Animated.View
                     style={[animatedStyle, { backgroundColor: '#FFF' }]}
                 >
-                    <FeedPost post={post} />
+                    <FeedPost post={post} onLike={onLike} />
                 </Animated.View>
             </GestureDetector>
         </View>
     );
-}
+});
 
 const styles = StyleSheet.create({
     container: {
