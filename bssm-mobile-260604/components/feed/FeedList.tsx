@@ -13,6 +13,8 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 // — onScroll 핸들러가 JS 브리지 없이 UI 스레드에서 직접 실행됨
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList<Post>);
 
+const ITEM_HEIGHT = 420; // 실제 FeedPost 카드 높이로 조정
+
 function FeedList({
     posts,
     onEndReached,
@@ -64,11 +66,22 @@ function FeedList({
         [removePost, onLike],
     );
 
+    // TODO 3 (선택): 카드 높이가 고정이라면 getItemLayout을 추가하세요
+    //         const ITEM_HEIGHT = 420; // 실제 높이로 조정
+    //         getItemLayout={(_, index) => ({ length: ITEM_HEIGHT, offset: ITEM_HEIGHT * index, index })}
+
     return (
         <AnimatedFlatList
             data={posts}
             keyExtractor={item => item.id}
             renderItem={renderItem}
+            getItemLayout={(_, index) => ({
+                length: ITEM_HEIGHT,
+                offset: ITEM_HEIGHT * index,
+                index,
+            })}
+            initialNumToRender={5}
+            windowSize={5}
             showsVerticalScrollIndicator={false}
             onEndReached={onEndReached}
             onEndReachedThreshold={0.5}
